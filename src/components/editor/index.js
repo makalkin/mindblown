@@ -19,7 +19,14 @@ import resize from "cytoscape-node-resize";
 import konva from "konva";
 import $ from "jquery";
 
+import spread from "cytoscape-spread";
+
+import tutorialMenu from "./tutorial/menu.png";
+import tutorialControls from "./tutorial/controls.png";
+
 const cy = resize(cytoscape, $, konva);
+
+cytoscape.use(spread);
 
 const EditorContainer = styled.div`
   height: 100%;
@@ -51,15 +58,23 @@ export class Editor extends React.Component {
       edit: false
     },
     layout: {
-      name: "breadthfirst",
+      name: "spread",
       fit: true,
       animate: true,
-      directed: true,
-      circle: true,
-      avoidOverlap: true,
-      maximalAdjustments: 2,
-      spacingFactor: 1
+      minDist: 500,
+      padding: 20,
+      expandingFactor: -1
     }
+    // layout: {
+    //   name: "breadthfirst",
+    //   fit: true,
+    //   animate: true,
+    //   directed: true,
+    //   circle: true,
+    //   avoidOverlap: true,
+    //   maximalAdjustments: 2,
+    //   spacingFactor: 1
+    // }
     // activeNode: null,
     // layout: {
     //   animate: true,
@@ -117,7 +132,89 @@ export class Editor extends React.Component {
               x: window.innerWidth / 2,
               y: window.innerHeight / 2
             },
-            description: "Graphics Cards"
+            description: "How to use?"
+          }
+        },
+        {
+          data: {
+            id: "menu",
+            description: "Action Menu"
+          }
+        },
+        {
+          data: {
+            id: shortid.generate(),
+            source: "root",
+            target: "menu"
+          }
+        },
+        {
+          data: {
+            id: "nodes",
+            description: "Hover over the node"
+          }
+        },
+        {
+          data: {
+            id: shortid.generate(),
+            source: "root",
+            target: "nodes"
+          }
+        },
+        {
+          data: {
+            id: "plus",
+            description: "Adds child"
+          },
+          classes: "empty"
+        },
+        {
+          data: {
+            id: shortid.generate(),
+            source: "nodes",
+            target: "plus"
+          }
+        },
+        {
+          data: {
+            id: "pencil",
+            description: "Edit label"
+          },
+          classes: "empty"
+        },
+        {
+          data: {
+            id: shortid.generate(),
+            source: "nodes",
+            target: "pencil"
+          }
+        },
+        {
+          data: {
+            id: "img",
+            description: "Attach image"
+          },
+          classes: "empty"
+        },
+        {
+          data: {
+            id: shortid.generate(),
+            source: "nodes",
+            target: "img"
+          }
+        },
+        {
+          data: {
+            id: "trash",
+            description: "Remove node and children"
+          },
+          classes: "empty"
+        },
+        {
+          data: {
+            id: shortid.generate(),
+            source: "nodes",
+            target: "trash"
           }
         }
       ],
@@ -134,7 +231,9 @@ export class Editor extends React.Component {
             label: "data(description)",
             "background-fit": "contain",
             "text-wrap": "wrap",
-            "text-max-width": "300"
+            "text-max-width": "500",
+            "border-width": "1",
+            "background-color": "#eee"
           }
         },
         {
@@ -142,6 +241,7 @@ export class Editor extends React.Component {
           style: {
             shape: "roundrectangle",
             width: "label",
+            height: "label",
             "font-size": "40px",
             "text-valign": "center",
             "text-halign": "center",
@@ -154,13 +254,30 @@ export class Editor extends React.Component {
           selector: "#root",
           style: {
             "background-image":
-              "http://assets.nvidia.com/nv/pascal/images/geforce_gtx_1080_3qtr_front_left.png",
+              "https://pbs.twimg.com/media/CMDORZ0WsAAJXSS.png",
             "background-fit": "contain",
-            "background-color": "#666",
+
             width: "200",
             height: "200"
           }
         },
+        {
+          selector: "#menu",
+          style: {
+            "background-image": tutorialMenu,
+            width: "418",
+            height: "222"
+          }
+        },
+        {
+          selector: "#nodes",
+          style: {
+            "background-image": tutorialControls,
+            width: "472",
+            height: "252"
+          }
+        },
+
         {
           selector: "edge",
           style: {
@@ -177,6 +294,11 @@ export class Editor extends React.Component {
 
       layout: this.state.layout
     });
+
+    // console.log(this.cy.nodes("#root"));
+    // this.setState({
+    //   layout: { ...this.state.layout, roots: this.cy.nodes("#root") }
+    // });
 
     this.cy.on("free mouseover", "node", event => {
       const node = event.target;
@@ -236,7 +358,7 @@ export class Editor extends React.Component {
             <Icon name="grid layout" />
             Fit
           </Menu.Item>
-          <Menu.Item name="home">
+          <Menu.Item name="home" onClick={this.export}>
             <Icon name="external share" />
             Export
           </Menu.Item>
@@ -378,6 +500,10 @@ export class Editor extends React.Component {
 
   toggleVisibility = () => {
     this.setState({ visible: !this.state.visible });
+  };
+
+  export = () => {
+    console.log(this.cy.json());
   };
 }
 
