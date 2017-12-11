@@ -382,6 +382,7 @@ export class Editor extends React.Component {
   handleLableInputKeyPress = event => {
     if (event.key == "Enter") {
       console.log("yes");
+      this.setState({ popup: { show: false, edit: false } });
     }
   };
 }
