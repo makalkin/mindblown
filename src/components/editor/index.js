@@ -14,9 +14,6 @@ import shortid from "shortid";
 import { debounce } from "lodash";
 import styled from "styled-components";
 
-import "./styles.scss";
-import gtx from "./gtx.png";
-
 import cytoscape from "cytoscape";
 import resize from "cytoscape-node-resize";
 import konva from "konva";
@@ -165,7 +162,8 @@ export class Editor extends React.Component {
         {
           selector: "#root",
           style: {
-            "background-image": gtx,
+            "background-image":
+              "http://assets.nvidia.com/nv/pascal/images/geforce_gtx_1080_3qtr_front_left.png",
             "background-fit": "contain",
             "background-color": "#666",
             width: "200",

@@ -2,7 +2,7 @@
   "name": "mindblown",
   "version": "0.1.0",
   "private": true,
-  "homepage": "http://makalkin.github.io/mindblown",
+  "homepage": "https://makalkin.github.io/mindblown/",
   "dependencies": {
     "cytoscape": "^3.2.7",
     "cytoscape-node-resize": "^3.0.0",
@@ -20,9 +20,14 @@
     "styled-components": "^2.2.3"
   },
   "scripts": {
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
+  },
+  "devDependencies": {
+    "gh-pages": "^1.1.0"
   }
 }
