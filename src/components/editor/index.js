@@ -460,6 +460,7 @@ export class Editor extends React.Component {
   };
 
   removeNode = () => {
+    this.activeNode.successors().remove();
     this.cy.remove(this.activeNode);
     this.setState({ popup: { show: false } });
   };
