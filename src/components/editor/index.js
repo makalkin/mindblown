@@ -120,19 +120,10 @@ export class Editor extends React.Component {
             description: "Graphics Cards"
           }
         }
-        // {
-        //   // node b
-        //   data: { id: "b" }
-        // },
-        // {
-        //   // edge ab
-        //   data: { id: "ab", source: "a", target: "b" }
-        // }
       ],
 
       style: [
         // the stylesheet for the graph
-
         {
           selector: "node",
           style: {
@@ -223,7 +214,6 @@ export class Editor extends React.Component {
           <Icon name="sidebar" />
         </Menu.Item>
       </MainMenu>,
-      // <Button onClick={this.toggleVisibility}>Toggle Visibility</Button>,
       <Sidebar.Pushable
         key="sidebar"
         as={Segment}
@@ -384,6 +374,10 @@ export class Editor extends React.Component {
       console.log("yes");
       this.setState({ popup: { show: false, edit: false } });
     }
+  };
+
+  toggleVisibility = () => {
+    this.setState({ visible: !this.state.visible });
   };
 }
 
