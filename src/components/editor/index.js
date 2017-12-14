@@ -10,8 +10,9 @@ import {
   Popup
 } from "semantic-ui-react";
 
+import FileSaver from 'file-saver';
+
 import shortid from "shortid";
-import { debounce } from "lodash";
 import styled from "styled-components";
 
 import cytoscape from "cytoscape";
@@ -20,13 +21,17 @@ import konva from "konva";
 import $ from "jquery";
 
 import spread from "cytoscape-spread";
+import dagre from 'cytoscape-dagre'
 
 import tutorialMenu from "./tutorial/menu.png";
 import tutorialControls from "./tutorial/controls.png";
 
-const cy = resize(cytoscape, $, konva);
-
 cytoscape.use(spread);
+cytoscape.use(dagre)
+
+resize(cytoscape, $, konva);
+
+
 
 const EditorContainer = styled.div`
   height: 100%;
@@ -44,7 +49,7 @@ const PopupMenu = styled.div`
   z-index: 1000;
 `;
 
-const MainMenu = styled(Menu)`
+const MainMenu = styled(Menu) `
   border: 0 ;important!;
   border-radius: 0; important!
   margin: 0; important!
@@ -57,21 +62,51 @@ export class Editor extends React.Component {
       show: false,
       edit: false
     },
+    // layout: {
+    //   name: 'cola',
+    //   flow: { axis: 'y', },
+    //   avoidOverlaps: true,
+    //   unconstrIter: 10,
+    //   userConstIter: 20
+    // },
     layout: {
-      name: "spread",
-      fit: true,
-      animate: true,
-      minDist: 500,
-      padding: 20,
-      expandingFactor: -1
-    }
+      name: 'dagre',
+      // dagre algo options, uses default value on undefined
+      nodeSep: 100, // the separation between adjacent nodes in the same rank
+      edgeSep: 200, // the separation between adjacent edges in the same rank
+      rankSep: 300, // the separation between adjacent nodes in the same rank
+      rankDir: "LR", // 'TB' for top to bottom flow, 'LR' for left to right,
+      ranker: 'network-simplex', // Type of algorithm to assign a rank to each node in the input graph. Possible values: 'network-simplex', 'tight-tree' or 'longest-path'
+      // minLen: function (edge) { return 1; }, // number of ranks to keep between the source and target of the edge
+      // edgeWeight: function (edge) { return 1; }, // higher weight edges are generally made shorter and straighter than lower weight edges
+
+      // general layout options
+      fit: false, // whether to fit to viewport
+      padding: 100, // fit padding
+      // Applies a multiplicative factor (>0) to expand or compress the overall area that the nodes take up
+      nodeDimensionsIncludeLabels: true, // whether labels should be included in determining the space used by a node (default true)
+      animate: false, // whether to transition the node positions
+      // animationDuration: 2, // duration of animation in ms if enabled
+
+    },
+
+    // layout: {
+    //   name: "spread",
+    //   fit: false,
+    //   animate: true,
+    //   minDist: 800,
+    //   padding: 20,
+    //   expandingFactor: -1,
+    //   randomize: true
+    // }
     // layout: {
     //   name: "breadthfirst",
-    //   fit: true,
+    //   fit: false,
     //   animate: true,
     //   directed: true,
-    //   circle: true,
+    //   circle: false,
     //   avoidOverlap: true,
+    //   padding: 50,
     //   maximalAdjustments: 2,
     //   spacingFactor: 1
     // }
@@ -121,6 +156,8 @@ export class Editor extends React.Component {
 
   componentDidMount() {
     this.cy = cytoscape({
+      motionBlur: true,
+      wheelSensitivity: 0.07,
       container: document.getElementById("editor"),
       elements: [
         // list of graph elements to start with
@@ -295,6 +332,13 @@ export class Editor extends React.Component {
       layout: this.state.layout
     });
 
+    this.refreshLayout();
+
+    // this.layout = this.cy.layout(this.state.layout)
+    // this.layout.pon('layoutstop').then(event => {
+    //   this.cy.center(this.cy.$('#root'))
+    // });
+
     // console.log(this.cy.nodes("#root"));
     // this.setState({
     //   layout: { ...this.state.layout, roots: this.cy.nodes("#root") }
@@ -430,8 +474,14 @@ export class Editor extends React.Component {
     ];
   }
 
-  refreshLayout = () => {
-    this.cy.layout(this.state.layout).run();
+  refreshLayout = async (node) => {
+    this.layout = this.cy.layout(this.state.layout)
+    this.layout.pon('layoutstop').then(event => {
+      const root = this.cy.$('#root')
+      this.cy.center(root)
+      this.cy.fit();
+    })
+    this.layout.run();
   };
 
   fitLayout = () => {
@@ -439,24 +489,32 @@ export class Editor extends React.Component {
   };
 
   addNode = () => {
-    const id = shortid.generate();
+    const node = shortid.generate();
+    const edge = shortid.generate();
+    this.layout.stop();
+
     this.cy.add([
       {
         group: "nodes",
-        data: { id, description: "new node" },
-        classes: "empty"
+        data: { id: node, description: "new node" },
+        classes: "empty",
+        style: { visibility: 'hidden' }
       },
       {
         group: "edges",
         data: {
-          id: shortid.generate(),
+          id: edge,
           source: this.activeNode.id(),
-          target: id
-        }
+          target: node
+        },
+        style: { visibility: 'hidden' }
       }
     ]);
 
-    this.refreshLayout();
+    this.refreshLayout(this.cy.$(`#${node}`));
+    this.cy.$(`#${node}`).style('visibility', 'visible')
+    this.cy.$(`#${edge}`).style('visibility', 'visible')
+
   };
 
   removeNode = () => {
@@ -477,7 +535,7 @@ export class Editor extends React.Component {
     const reader = new FileReader();
     let imgSrc;
 
-    reader.onloadend = function() {
+    reader.onloadend = function () {
       imgSrc = reader.result;
       node
         .style({
@@ -494,7 +552,6 @@ export class Editor extends React.Component {
 
   handleLableInputKeyPress = event => {
     if (event.key == "Enter") {
-      console.log("yes");
       this.setState({ popup: { show: false, edit: false } });
     }
   };
@@ -504,6 +561,7 @@ export class Editor extends React.Component {
   };
 
   export = () => {
+    FileSaver.saveAs(this.cy.png({ output: 'blob', bg: '#fff' }), 'MyMap.png')
     console.log(this.cy.json());
   };
 }
