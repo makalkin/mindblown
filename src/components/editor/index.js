@@ -45,7 +45,7 @@ const PopupMenu = styled.div`
   display: ${({ show }) => (show ? "block" : "none")};
   position: absolute;
   left: ${props => props.left}px;
-  top: ${props => props.top}px;
+  top: ${props => props.top - 30}px;
   z-index: 1000;
 `;
 
@@ -63,6 +63,39 @@ export class Editor extends React.Component {
       edit: false
     },
     // layout: {
+    //   name: 'concentric',
+
+    //   padding: 30, // the padding on fit
+    //   startAngle: 3 * Math.PI, // where nodes start in radians
+    //   sweep: undefined, // how many radians should be between the first and last node (defaults to full circle)
+    //   clockwise: true, // whether the layout should go clockwise (true) or counterclockwise/anticlockwise (false)
+    //   equidistant: false, // whether levels have an equal radial distance betwen them, may cause bounding box overflow
+    //   // minNodeSpacing: 10, // min spacing between outside of nodes (used for radius adjustment)
+    //   // boundingBox: undefined, // constrain layout bounds; { x1, y1, x2, y2 } or { x1, y1, w, h }
+    //   // avoidOverlap: true, // prevents node overlap, may overflow boundingBox if not enough space
+    //   // nodeDimensionsIncludeLabels: false, // Excludes the label when calculating node bounding boxes for the layout algorithm
+    //   // height: undefined, // height of layout area (overrides container height)
+    //   // width: undefined, // width of layout area (overrides container width)
+    //   spacingFactor: 1, // Applies a multiplicative factor (>0) to expand or compress the overall area that the nodes take up
+    //   concentric: function (node) { // returns numeric value for each node, placing higher nodes in levels towards the centre
+    //     const rank = -node.cy().elements().aStar({ goal: `#${node.id()}`, root: '#root' }).distance
+    //     return rank;
+    //   },
+    //   levelWidth: (nodes) => {
+    //     return 10;
+    //   },
+    //   // levelWidth: function( nodes ){ // the letiation of concentric values in each level
+    //   // return nodes.maxDegree() / 4;
+    //   // },
+    //   // animate: false, // whether to transition the node positions
+    //   // animationDuration: 500, // duration of animation in ms if enabled
+    //   // animationEasing: undefined, // easing of animation if enabled
+    //   // animateFilter: function ( node, i ){ return true; }, // a function that determines whether the node should be animated.  All nodes animated by default on animate enabled.  Non-animated nodes are positioned immediately when the layout starts
+    //   // ready: undefined, // callback on layoutready
+    //   // stop: undefined, // callback on layoutstop
+    //   // transform: function (node, position ){ return position; } // transform a given node position. Useful for changing flow direction in discrete layouts 
+    // },
+    // layout: {
     //   name: 'cola',
     //   flow: { axis: 'y', },
     //   avoidOverlaps: true,
@@ -72,13 +105,13 @@ export class Editor extends React.Component {
     layout: {
       name: 'dagre',
       // dagre algo options, uses default value on undefined
-      nodeSep: 100, // the separation between adjacent nodes in the same rank
+      nodeSep: 200, // the separation between adjacent nodes in the same rank
       edgeSep: 200, // the separation between adjacent edges in the same rank
       rankSep: 300, // the separation between adjacent nodes in the same rank
       rankDir: "LR", // 'TB' for top to bottom flow, 'LR' for left to right,
       ranker: 'network-simplex', // Type of algorithm to assign a rank to each node in the input graph. Possible values: 'network-simplex', 'tight-tree' or 'longest-path'
-      // minLen: function (edge) { return 1; }, // number of ranks to keep between the source and target of the edge
-      // edgeWeight: function (edge) { return 1; }, // higher weight edges are generally made shorter and straighter than lower weight edges
+      minLen: function (edge) { return 1.5; }, // number of ranks to keep between the source and target of the edge
+      // edgeWeight: function (edge) { console.log(edge); return 0.1; }, // higher weight edges are generally made shorter and straighter than lower weight edges
 
       // general layout options
       fit: false, // whether to fit to viewport
@@ -101,14 +134,14 @@ export class Editor extends React.Component {
     // }
     // layout: {
     //   name: "breadthfirst",
-    //   fit: false,
+    //   fit: true,
     //   animate: true,
-    //   directed: true,
-    //   circle: false,
+    //   directed: false,
+    //   circle: true,
     //   avoidOverlap: true,
     //   padding: 50,
     //   maximalAdjustments: 2,
-    //   spacingFactor: 1
+    //   spacingFactor: 1.5
     // }
     // activeNode: null,
     // layout: {
@@ -266,6 +299,7 @@ export class Editor extends React.Component {
             height: "100",
             "font-size": "40px",
             label: "data(description)",
+            padding: 10,
             "background-fit": "contain",
             "text-wrap": "wrap",
             "text-max-width": "500",
@@ -318,12 +352,15 @@ export class Editor extends React.Component {
         {
           selector: "edge",
           style: {
-            "curve-style": "unbundled-bezier",
-            "control-point-distances": [20, -20],
-            "control-point-weights": [0.25, 0.75],
-            width: 3,
-            "line-color": "#aa0",
-            "target-arrow-color": "#aa0",
+            "curve-style": "bezier",
+            "control-point-step-size": 10,
+            "control-point-weight": 0.33,
+            "edge-distances": "node-position",
+            // "control-point-distances": [20, -20],
+            // "control-point-weights": [0.25, 0.75],
+            width: 5,
+            "line-color": "#4286f4",
+            "target-arrow-color": "#4286f4",
             "target-arrow-shape": "triangle"
           }
         }
@@ -393,6 +430,7 @@ export class Editor extends React.Component {
           icon="labeled"
           vertical
           inverted
+          style={{ zIndex: 1001 }}
         >
           <Menu.Item name="home" onClick={this.refreshLayout}>
             <Icon name="refresh" />
@@ -411,7 +449,7 @@ export class Editor extends React.Component {
           <EditorContainer id="editor" />
         </Sidebar.Pusher>
         <PopupMenu {...popup}>
-          <div style={{ top: "-2em", position: "relative" }}>
+          <div style={{ position: "relative" }}>
             <Button
               icon="add"
               size="mini"
@@ -470,7 +508,7 @@ export class Editor extends React.Component {
           onChange={this.changeImage(this.activeNode)}
           type="file"
         />
-      </Sidebar.Pushable>
+      </Sidebar.Pushable >
     ];
   }
 
@@ -478,8 +516,8 @@ export class Editor extends React.Component {
     this.layout = this.cy.layout(this.state.layout)
     this.layout.pon('layoutstop').then(event => {
       const root = this.cy.$('#root')
-      this.cy.center(root)
-      this.cy.fit();
+      // this.cy.center(root)
+      // this.cy.fit();
     })
     this.layout.run();
   };
@@ -528,16 +566,17 @@ export class Editor extends React.Component {
   };
 
   openDialog = event => {
+    this.imageNode = this.activeNode;
     this.imageInput.inputRef.click();
   };
 
-  changeImage = node => {
+  changeImage = () => {
     const reader = new FileReader();
     let imgSrc;
 
-    reader.onloadend = function () {
+    reader.onloadend = () => {
       imgSrc = reader.result;
-      node
+      this.imageNode
         .style({
           "background-image": imgSrc
         })
