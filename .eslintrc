@@ -1,0 +1,22 @@
+{
+  "parser": "babel-eslint",
+  "plugins": ["react", "jsx-a11y", "import"],
+  "rules": {
+    "import/prefer-default-export": "off",
+    "no-param-reassign": "off",
+    "react/jsx-filename-extension": "off",
+    "react/forbid-prop-types": ["error", { "forbid": [] }],
+    "no-underscore-dangle": [
+      "error",
+      { "allow": ["__REDUX_DEVTOOLS_EXTENSION_COMPOSE__"] }
+    ],
+    "react/prefer-stateless-function": "off",
+    "no-alert": "off",
+    "react/no-unescaped-entities": "off",
+    "linebreak-style": 0
+  },
+  "env": {
+    "browser": true,
+    "jest": true
+  }
+}
